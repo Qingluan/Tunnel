@@ -56,7 +56,7 @@ func UpdateSession(proxy string, con *smux.Session) {
 
 func createSession(protocol, proxy string) (*smux.Session, error) {
 	for {
-		con, _, err := ExpressDial(protocol, proxy, false)
+		con, _, err := ExpressDial(proxy, protocol, false)
 		if err != nil {
 			log.Println(fmt.Sprintf(protocol+" connect error \"%s\" , wait 1s to reconnect!!!", proxy))
 			time.Sleep(1 * time.Second)

@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Qingluan/Tunnel/config"
 )
 
 const (
@@ -47,19 +49,22 @@ var (
 	errReqExtraData  = errors.New("socks request get extra data")
 	errCmd           = errors.New("socks command not supported")
 	SOCKS5_REPY      = []byte{0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x08, 0x43}
-	GLOBALTIMEOUT    = 70
-	GLOBALPROTOCOL   = "tls"
+	GLOBALTIMEOUT    = 1000
+	// GLOBALPROTOCOL   = "tls"
 	// smuxConfig = smux.DefaultConfig()
 
 )
 
-func SetProtocol(i string) {
-	locker.Lock()
-	defer locker.Unlock()
-	GLOBALPROTOCOL = i
-}
+// func SetProtocol(i string) {
+// 	locker.Lock()
+// 	defer locker.Unlock()
+// 	// GLOBALPROTOCOL = i
+// }
 
 func SetGlobalTimeout(i int) {
+	locker.Lock()
+	defer locker.Unlock()
+
 	GLOBALTIMEOUT = i
 }
 
@@ -68,7 +73,7 @@ func SetReadTimeout(c net.Conn) {
 }
 
 func SetWriteTimeout(c *net.Conn) {
-	(*c).SetWriteDeadline(time.Now().Add(10 * time.Second))
+	(*c).SetWriteDeadline(time.Now().Add(time.Duration(GLOBALTIMEOUT) * time.Second))
 }
 
 func ParseSocks5Header(conn net.Conn) (rawaddr []byte, host string, err error) {
@@ -186,7 +191,8 @@ func Socks5ConnectedReply(p1 net.Conn) (err error) {
 	return
 }
 
-func Socks5ForwardServer(protocol string, lc net.Conn, multi bool) (err error) {
+func Socks5Serve(lc net.Conn, configs ...interface{}) (err error) {
+
 	_, host, err := ParseSocks5Header(lc)
 
 	if err != nil {
@@ -205,15 +211,20 @@ func Socks5ForwardServer(protocol string, lc net.Conn, multi bool) (err error) {
 		next := nexts[c]
 		Special := strings.Join(fields[1:], CHAIN)
 		log.Println("--->", next, "||", Special)
-		ExpressConnectTo(lc, protocol, next, Socks5Padding(Special), multi)
+		configs = append(configs, config.Config(Socks5Padding(Special)))
+		ExpressPipeTo(lc, next, configs...)
 	} else if strings.HasPrefix(host, "proxy://") {
 		fields := strings.Split(host, CHAIN)
 		next := strings.SplitN(fields[0], "proxy://", 2)[1]
 		Special := strings.Join(fields[1:], CHAIN)
+
 		log.Println("--->", next, "||", Special)
-		ExpressConnectTo(lc, protocol, next, Socks5Padding(Special), multi)
+
+		configs = append(configs, config.Config(Socks5Padding(Special)))
+		ExpressPipeTo(lc, next, configs...)
 	} else {
-		TcpConnected(host, lc, SOCKS5_REPY)
+		TcpEnd(host, lc, SOCKS5_REPY)
+
 	}
 	return
 }

@@ -380,22 +380,22 @@ func (config *Config) ToCertAndKey(name string) (crt_key_paths []string) {
 	return
 }
 
-func initiTlsConnection(tlsConfig *TlsConfig, firstData ...[]byte) (con net.Conn, roleReply []byte, err error) {
-	con, err = tlsConfig.WithConn()
-	if err != nil {
-		log.Println("Err Conn remote tls server:", err)
-		return
-	}
-	if firstData != nil {
-		con.Write(firstData[0])
-		buf := make([]byte, 20)
-		n, err := con.Read(buf)
-		if err != nil {
-			con.Close()
-			log.Println("Err in role confirm reply:", err)
-			return nil, []byte{}, err
-		}
-		roleReply = buf[:n]
-	}
-	return
-}
+// func initiTlsConnection(tlsConfig *TlsConfig, firstData ...[]byte) (con net.Conn, roleReply []byte, err error) {
+// 	con, err = tlsConfig.WithConn()
+// 	if err != nil {
+// 		log.Println("Err Conn remote tls server:", err)
+// 		return
+// 	}
+// 	if firstData != nil {
+// 		con.Write(firstData[0])
+// 		buf := make([]byte, 20)
+// 		n, err := con.Read(buf)
+// 		if err != nil {
+// 			con.Close()
+// 			log.Println("Err in role confirm reply:", err)
+// 			return nil, []byte{}, err
+// 		}
+// 		roleReply = buf[:n]
+// 	}
+// 	return
+// }

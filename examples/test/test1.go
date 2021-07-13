@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/Qingluan/Tunnel/tcp"
@@ -19,9 +18,9 @@ func main() {
 	flag.BoolVar(&ifmulti, "m", false, "ifmulti ")
 
 	flag.Parse()
-	fmt.Println(ifmulti)
+	// fmt.Println(ifmulti)
 
-	lst, err := tcp.ExpressListenWith(P, "127.0.0.1:12345", ifmulti)
+	lst, err := tcp.ExpressListenWith("127.0.0.1:12345", P, ifmulti)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,7 +43,7 @@ func main() {
 
 	for {
 		con, _ := lst.Accept()
-		go tcp.Socks5ForwardServer(P, con, ifmulti)
+		go tcp.Socks5Serve(con, P, ifmulti)
 	}
 
 	// var lst net.Listener

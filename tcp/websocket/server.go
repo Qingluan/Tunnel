@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -114,11 +113,11 @@ func checkOrigin(config *Config, req *http.Request) (err error) {
 
 // ServeHTTP implements the http.Handler interface for a WebSocket
 func (h Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	for k, v := range req.Header {
+	// for k, v := range req.Header {
 
-		log.Println("Headers:", k, v)
+	// 	log.Println("Headers:", k, v)
 
-	}
+	// }
 	s := Server{Handler: h, Handshake: checkOrigin}
 	s.serveWebSocket(w, req)
 }

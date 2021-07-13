@@ -19,7 +19,7 @@ func main() {
 
 	fmt.Println(ifmulti)
 
-	tcp.ExpressSocks5ToListener(P, "127.0.0.1:1080", "127.0.0.1:12345", ifmulti)
+	tcp.ExpressSocks5ListenerTo("127.0.0.1:1080", "127.0.0.1:12345", P, ifmulti)
 	// one := func(f string) {
 	// 	con, _, err := tcp.ExpressDial(P, "127.0.0.1:12345", ifmulti)
 	// 	fmt.Println("->")

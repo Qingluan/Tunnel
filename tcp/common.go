@@ -2,7 +2,6 @@ package tcp
 
 import (
 	"io"
-	"log"
 	"net"
 )
 
@@ -34,15 +33,43 @@ func Pipe(p1, p2 net.Conn) {
 	streamCopy(p2, p1, p1.RemoteAddr(), p2.RemoteAddr())
 }
 
-func TcpConnected(toDst string, conFrom net.Conn, midledata []byte) {
+func TcpEnd(toDst string, conFrom net.Conn, midledata []byte) error {
 	defer conFrom.Close()
-	remoteConn, err := net.Dial("tcp", toDst)
+	remoteConn, err := ConnectTo("tcp", toDst)
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
 	if midledata != nil {
 		_, err = conFrom.Write(midledata)
 	}
+	if err != nil {
+		return err
+	}
 	Pipe(conFrom, remoteConn)
+	return nil
+}
+
+func ConnectTo(protocl, dst string) (con net.Conn, err error) {
+	switch protocl {
+	case "tcp":
+		con, err = net.Dial("tcp", dst)
+	case "unix":
+		con, err = net.Dial("unix", dst)
+	case "tls":
+		con, err = UseDefaultTlsConfig(dst).WithConn()
+	case "wss":
+		con, err = connectWebsocketServer(dst, true)
+	case "ws":
+		con, err = connectWebsocketServer(dst, false)
+	}
+	return
+}
+
+func AddConfigs(old []interface{}, new interface{}) (out []interface{}) {
+	out = append(old, new)
+	return
+}
+
+func T(i ...interface{}) {
+	// fmt.Println("ok :", fmt.Sprint(i...))
 }

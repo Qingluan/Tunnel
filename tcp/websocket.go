@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -98,7 +97,7 @@ func NewWebsocketListener(ln net.Listener, certFile_keyFile ...string) (wl *Webs
 			Addr:    ln.Addr().String(),
 			Handler: muxer,
 		}
-		log.Println(certFile_keyFile)
+
 		go wl.server.ServeTLS(ln, certFile_keyFile[0], certFile_keyFile[1])
 		// go wl.server.Serve(ln)
 	} else {
@@ -149,7 +148,7 @@ func (p *WebsocketListener) Addr() net.Addr {
 }
 
 // addr: domain:port
-func ConnectWebsocketServer(addr string, isSecure bool) (net.Conn, error) {
+func connectWebsocketServer(addr string, isSecure bool) (net.Conn, error) {
 	// var addr string
 	if isSecure {
 		ho := strings.Split(addr, ":")
@@ -167,7 +166,6 @@ func ConnectWebsocketServer(addr string, isSecure bool) (net.Conn, error) {
 		return nil, err
 	}
 
-	fmt.Println("Wss ->", addr)
 	var origin string
 	if isSecure {
 		ho := strings.Split(uri.Host, ":")
@@ -201,53 +199,53 @@ func ConnectWebsocketServer(addr string, isSecure bool) (net.Conn, error) {
 	return conn, nil
 }
 
-func ConnectWsAndFirstBuf(addr string, first ...[]byte) (con net.Conn, firstReply []byte, err error) {
-	con, err = ConnectWebsocketServer(addr, false)
-	if err != nil {
-		return
-	}
-	if first != nil {
-		// var n int
-		_, err = con.Write(first[0])
-		if err != nil {
-			con.Close()
-			return
-		}
-		buf := make([]byte, 20)
-		if nr, eerr := con.Read(buf); err != nil {
-			con.Close()
-			return con, firstReply, eerr
-		} else {
-			firstReply = buf[:nr]
-			return
-		}
-	}
-	return
-}
+// func ConnectWsAndFirstBuf(addr string, first ...[]byte) (con net.Conn, firstReply []byte, err error) {
+// 	con, err = ConnectWebsocketServer(addr, false)
+// 	if err != nil {
+// 		return
+// 	}
+// 	if first != nil {
+// 		// var n int
+// 		_, err = con.Write(first[0])
+// 		if err != nil {
+// 			con.Close()
+// 			return
+// 		}
+// 		buf := make([]byte, 20)
+// 		if nr, eerr := con.Read(buf); err != nil {
+// 			con.Close()
+// 			return con, firstReply, eerr
+// 		} else {
+// 			firstReply = buf[:nr]
+// 			return
+// 		}
+// 	}
+// 	return
+// }
 
-func ConnectWssAndFirstBuf(addr string, first ...[]byte) (con net.Conn, firstReply []byte, err error) {
-	con, err = ConnectWebsocketServer(addr, true)
-	if err != nil {
-		return
-	}
-	if first != nil {
-		// var n int
-		_, err = con.Write(first[0])
-		if err != nil {
-			con.Close()
-			return
-		}
-		buf := make([]byte, 20)
-		if nr, eerr := con.Read(buf); err != nil {
-			con.Close()
-			return con, firstReply, eerr
-		} else {
-			firstReply = buf[:nr]
-			return
-		}
-	}
-	return
-}
+// func ConnectWssAndFirstBuf(addr string, first ...[]byte) (con net.Conn, firstReply []byte, err error) {
+// 	con, err = ConnectWebsocketServer(addr, true)
+// 	if err != nil {
+// 		return
+// 	}
+// 	if first != nil {
+// 		// var n int
+// 		_, err = con.Write(first[0])
+// 		if err != nil {
+// 			con.Close()
+// 			return
+// 		}
+// 		buf := make([]byte, 20)
+// 		if nr, eerr := con.Read(buf); err != nil {
+// 			con.Close()
+// 			return con, firstReply, eerr
+// 		} else {
+// 			firstReply = buf[:nr]
+// 			return
+// 		}
+// 	}
+// 	return
+// }
 
 // func dialWithDialer(dialer *net.Dialer, config *Config) (conn net.Conn, err error) {
 // 	switch config.Location.Scheme {
