@@ -7,13 +7,10 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"net"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/Qingluan/Tunnel/config"
 )
 
 const (
@@ -191,60 +188,43 @@ func Socks5ConnectedReply(p1 net.Conn) (err error) {
 	return
 }
 
-func Socks5Serve(lc net.Conn, configs ...interface{}) (err error) {
+func Socks5Serve(lc net.Conn, handle func(host string, con net.Conn), configs ...interface{}) (err error) {
 
 	_, host, err := ParseSocks5Header(lc)
-
 	if err != nil {
 		log.Println("err:", err)
 		return
 	}
-	// log.Println("==>", host)
-	if strings.Contains(host, "config://menu") {
-		log.Println("go config>>>")
-	} else if strings.Contains(host, "config://alive") {
-		_, err = lc.Write([]byte("ok"))
-	} else if strings.HasPrefix(host, "proxys://") {
-		fields := strings.Split(host, CHAIN)
-		nexts := strings.Split(fields[0], "proxys://")
-		c := rand.Int() % len(nexts)
-		next := nexts[c]
-		Special := strings.Join(fields[1:], CHAIN)
-		log.Println("--->", next, "||", Special)
-		configs = append(configs, config.Config(Socks5Padding(Special)))
-		ExpressPipeTo(lc, next, configs...)
-	} else if strings.HasPrefix(host, "proxy://") {
-		fields := strings.Split(host, CHAIN)
-		next := strings.SplitN(fields[0], "proxy://", 2)[1]
-		Special := strings.Join(fields[1:], CHAIN)
 
-		log.Println("--->", next, "||", Special)
-
-		configs = append(configs, config.Config(Socks5Padding(Special)))
-		ExpressPipeTo(lc, next, configs...)
+	if handle != nil {
+		handle(host, lc)
 	} else {
 		TcpEnd(host, lc, SOCKS5_REPY)
-
 	}
+	// if strings.Contains(host, "config://menu") {
+	// 	log.Println("go config>>>")
+	// } else if strings.Contains(host, "config://alive") {
+	// 	_, err = lc.Write([]byte("ok"))
+	// } else if strings.HasPrefix(host, "proxys://") {
+	// 	fields := strings.Split(host, CHAIN)
+	// 	nexts := strings.Split(fields[0], "proxys://")
+	// 	c := rand.Int() % len(nexts)
+	// 	next := nexts[c]
+	// 	Special := strings.Join(fields[1:], CHAIN)
+	// 	log.Println("--->", next, "||", Special)
+	// 	configs = append(configs, config.Config(Socks5Padding(Special)))
+	// 	ExpressPipeTo(lc, next, configs...)
+	// } else if strings.HasPrefix(host, "proxy://") {
+	// 	fields := strings.Split(host, CHAIN)
+	// 	next := strings.SplitN(fields[0], "proxy://", 2)[1]
+	// 	Special := strings.Join(fields[1:], CHAIN)
+	// 	log.Println("--->", next, "||", Special)
+	// 	configs = append(configs, config.Config(Socks5Padding(Special)))
+	// 	ExpressPipeTo(lc, next, configs...)
+	// } else {
+	// 	TcpEnd(host, lc, SOCKS5_REPY)
+	// }
 	return
-}
-
-func AliveCheck(server string) bool {
-	con, err := UseDefaultTlsConfig(server).WithConn()
-	if err != nil {
-		log.Println("alive check init err:", err)
-		return false
-	}
-	payload := Socks5Padding("config://alive")
-	con.Write(payload)
-	bufr := make([]byte, 4)
-	if n, err := con.Read(bufr); err == nil {
-		if string(bufr[:n]) == "ok" {
-			return true
-		}
-	}
-	return false
-
 }
 
 func Socks5Padding(payload string, ports ...int) []byte {
