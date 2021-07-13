@@ -49,7 +49,7 @@ var (
 	GLOBALTIMEOUT    = 1000
 	// GLOBALPROTOCOL   = "tls"
 	// smuxConfig = smux.DefaultConfig()
-	ServeHandle func(host string, con net.Conn)
+	ServeHandle func(raw []byte, host string, con net.Conn)
 )
 
 // func SetProtocol(i string) {
@@ -188,7 +188,7 @@ func Socks5ConnectedReply(p1 net.Conn) (err error) {
 	return
 }
 
-func SetSocks5Handle(f func(host string, con net.Conn)) {
+func SetSocks5Handle(f func(raw []byte, host string, con net.Conn)) {
 	locker.Lock()
 	defer locker.Unlock()
 	ServeHandle = f
@@ -196,14 +196,14 @@ func SetSocks5Handle(f func(host string, con net.Conn)) {
 
 func Socks5Serve(lc net.Conn, configs ...interface{}) (err error) {
 
-	_, host, err := ParseSocks5Header(lc)
+	raw, host, err := ParseSocks5Header(lc)
 	if err != nil {
 		log.Println("err:", err)
 		return
 	}
 
 	if ServeHandle != nil {
-		ServeHandle(host, lc)
+		ServeHandle(raw, host, lc)
 	} else {
 		TcpEnd(host, lc, SOCKS5_REPY)
 	}
