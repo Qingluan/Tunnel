@@ -11,8 +11,10 @@ import (
 )
 
 var (
-	allcon = make(map[string]*smux.Session)
-	locker = sync.RWMutex{}
+	allcon               = make(map[string]*smux.Session)
+	GlobalSessions       = make(chan *smux.Session, 512)
+	GlobalAverageRunning = false
+	locker               = sync.RWMutex{}
 )
 
 type scavengeSession struct {
@@ -77,6 +79,9 @@ func createSession(protocol, proxy string) (*smux.Session, error) {
 }
 
 func WithASession(protocol, proxy string, chs chan *smux.Session) (*smux.Session, error) {
+	if !GlobalAverageRunning {
+		go Average(GlobalSessions, 600)
+	}
 	if sess, ok := allcon[proxy]; ok {
 		if !sess.IsClosed() {
 			return sess, nil

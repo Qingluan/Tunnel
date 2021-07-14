@@ -43,7 +43,7 @@ func (expressLst *ExpressListener) Addr() net.Addr {
 func (lst *ExpressListener) Backend() {
 	defer fmt.Println("END")
 
-	go Average(lst.Sessions, 60)
+	go Average(lst.Sessions, 600)
 	for {
 		if lst.nowClose {
 			log.Println("Close listener")
