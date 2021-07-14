@@ -21,6 +21,18 @@ func Copy(dst io.Writer, src io.Reader) (written int64, err error) {
 	return io.CopyBuffer(dst, src, buf)
 }
 
+func PipeFile(p1, p2 io.ReadWriteCloser) {
+	// start tunnel & wait for tunnel termination
+	streamCopy := func(dst io.WriteCloser, src io.ReadCloser) {
+		// startAt := time.Now()
+		Copy(dst, src)
+		p1.Close()
+		p2.Close()
+	}
+	go streamCopy(p1, p2)
+	streamCopy(p2, p1)
+}
+
 func Pipe(p1, p2 net.Conn) {
 	// start tunnel & wait for tunnel termination
 	streamCopy := func(dst io.Writer, src io.ReadCloser, fr, to net.Addr) {

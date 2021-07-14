@@ -40,7 +40,11 @@ func ExpressDial(dst string, configs ...interface{}) (con net.Conn, reply []byte
 
 	}
 	if defaultconfig.First != nil {
-		con.Write(defaultconfig.First)
+		_, err = con.Write(defaultconfig.First)
+		if err != nil {
+			return
+		}
+		// buf := make([])
 	}
 	return
 }
@@ -80,17 +84,14 @@ func ExpressListenWith(addr string, configs ...interface{}) (lst *ExpressListene
 }
 
 func ExpressPipeTo(localConn net.Conn, remoteAddr string, configs ...interface{}) error {
-	dstcon, reply, err := ExpressDial(remoteAddr, configs...)
+	dstcon, _, err := ExpressDial(remoteAddr, configs...)
 	T(2)
 
 	if err != nil {
 		log.Println("connect reply err :", err)
 		return err
 	}
-	_, err = localConn.Write(reply)
-	if err != nil {
-		return err
-	}
+
 	Pipe(localConn, dstcon)
 	return nil
 }
