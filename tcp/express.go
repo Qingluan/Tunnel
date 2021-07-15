@@ -126,3 +126,8 @@ func ExpressSocks5ListenerTo(listenAddr string, remoteAddr string, configs ...in
 
 	}
 }
+
+func ExpressSocks5InitConnection(con net.Conn, realHost string) (ok bool) {
+	ok = Socks5Init(con, realHost)
+	return
+}
