@@ -78,16 +78,17 @@ func createSession(protocol, proxy string) (*smux.Session, error) {
 
 }
 
-func WithASession(protocol, proxy string, chs chan *smux.Session) (*smux.Session, error) {
+func WithASession(protocol, proxy string) (*smux.Session, error) {
 	if !GlobalAverageRunning {
 		go Average(GlobalSessions, 600)
+		GlobalAverageRunning = true
 	}
 	if sess, ok := allcon[proxy]; ok {
 		if !sess.IsClosed() {
 			return sess, nil
 		} else {
 			sess, err := createSession(protocol, proxy)
-			chs <- sess
+			GlobalSessions <- sess
 			if err != nil {
 				return nil, err
 			}
@@ -96,7 +97,7 @@ func WithASession(protocol, proxy string, chs chan *smux.Session) (*smux.Session
 		}
 	} else {
 		sess, _ := createSession(protocol, proxy)
-		chs <- sess
+		GlobalSessions <- sess
 		UpdateSession(proxy, sess)
 		return sess, nil
 	}

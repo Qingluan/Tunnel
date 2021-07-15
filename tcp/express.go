@@ -8,10 +8,6 @@ import (
 	"github.com/xtaci/smux"
 )
 
-var (
-	sessions = make(chan *smux.Session, 512)
-)
-
 func ExpressDial(dst string, configs ...interface{}) (con net.Conn, reply []byte, err error) {
 	defaultconfig := config.ParseConfigs(configs...)
 
@@ -19,7 +15,7 @@ func ExpressDial(dst string, configs ...interface{}) (con net.Conn, reply []byte
 
 	if defaultconfig.Multi {
 		var sess *smux.Session
-		sess, err = WithASession(defaultconfig.Protocol, dst, sessions)
+		sess, err = WithASession(defaultconfig.Protocol, dst)
 		if err != nil {
 			return nil, []byte{}, err
 		}

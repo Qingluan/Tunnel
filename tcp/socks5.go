@@ -141,7 +141,7 @@ func ParseSocks5Header(conn net.Conn) (rawaddr []byte, host string, err error) {
 	// host = net.JoinHostPort(host, strconv.Itoa(int(port)))
 
 	host = fmt.Sprintf("%s:%d", host, int(port))
-	log.Println("host:", host)
+	// log.Println("host:", host)
 	return
 }
 
