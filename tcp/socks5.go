@@ -265,3 +265,25 @@ func Socks5Padding(payload string, ports ...int) []byte {
 	}
 	return buf.Bytes()
 }
+
+func Socks5Init(con net.Conn, host string) (ok bool) {
+	_, err := con.Write([]byte{0x5, 0x1, 0x0})
+	if err != nil {
+		return
+	}
+	buf := make([]byte, 3)
+	_, err = con.Read(buf)
+	if err != nil {
+		return
+	}
+	if bytes.Equal(buf[:2], []byte{0x5, 0x0}) {
+		ok = true
+	}
+	hostBUf := Socks5Padding(host)
+	_, err = con.Write(hostBUf)
+	if err != nil {
+		ok = false
+		return
+	}
+	return
+}
